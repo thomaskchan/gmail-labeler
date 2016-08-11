@@ -34,14 +34,14 @@ sub usage {
       "  -i ID      Message ID to label\n" .
       "  -l LABELS  Labels in CSV format (comma-separated)" .
       "  -f         Path to a .gmail-labelerrc file\n" .
-      "  -p PW      Provide password to token on the command line.  Not safe!\n" .
+      "  -p PW      Provide password to token on the command line.  Not safe!\n" 
    );
    die("\n")
 }
 
 my $opt_labels;
 my $opt_help;
-my $opt_gmaillabelrrc;
+my $opt_gmaillabelerrc;
 my $opt_messageid;
 my $opt_passwd = "";
 Getopt::Long::GetOptions(
@@ -159,7 +159,7 @@ my $res;
 
 my @labels = split "/,/", $opt_labels;
 
-labelmessage($messageid,@labels);
+labelmessage($opt_messageid,@labels);
 
 exit;
 
