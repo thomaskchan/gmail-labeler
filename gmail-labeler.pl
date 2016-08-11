@@ -32,17 +32,17 @@ sub usage {
       $message,
       "Usage: $command -i ID -l \"LABELS\" [-f .gmail-labelerrc] [-p PW]\n" .
       "  -i ID      Message ID to label\n" .
-      "  -l LABELS  Labels in CSV format (comma-separated)" .
+      "  -l LABELS  Labels in CSV format (comma-separated)\b" .
       "  -f         Path to a .gmail-labelerrc file\n" .
       "  -p PW      Provide password to token on the command line.  Not safe!\n" 
    );
    die("\n")
 }
 
-my $opt_labels;
+my $opt_labels = "";
 my $opt_help;
 my $opt_gmaillabelerrc;
-my $opt_messageid;
+my $opt_messageid = "";
 my $opt_passwd = "";
 Getopt::Long::GetOptions(
     'l=s' => \$opt_labels,
