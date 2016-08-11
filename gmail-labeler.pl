@@ -167,6 +167,13 @@ exit;
 
 sub labelmessage {
     my ($opt_messageid,@labels) = @_;
+    my %body;
+    $body{body}{userId} = 'me';
+    $body{body}{Id} = $opt_messageid;
+    $body{body}{addLabelIds} = @labels;
+    $res = #service->users->messages->modify (
+        %body
+    )->execute({ auth_driver => $auth_driver });
 }
 
 # Encrypt string
