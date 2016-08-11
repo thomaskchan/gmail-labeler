@@ -114,6 +114,7 @@ my $auth_doc = {
     oauth2 => {
         scopes => {
             'https://www.googleapis.com/auth/gmail.labels' => 1,
+            'https://www.googleapis.com/auth/gmail.modify' => 1,
         }
     }
 };
