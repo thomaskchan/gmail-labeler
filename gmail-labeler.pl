@@ -171,7 +171,7 @@ sub labelmessage {
     $body{body}{userId} = 'me';
     $body{body}{Id} = $opt_messageid;
     $body{body}{addLabelIds} = @labels;
-    $res = #service->users->messages->modify (
+    $res = $service->users->messages->modify (
         %body
     )->execute({ auth_driver => $auth_driver });
 }
