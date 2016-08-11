@@ -32,7 +32,7 @@ sub usage {
       $message,
       "Usage: $command -i ID -l \"LABELS\" [-f .gmail-labelerrc] [-p PW]\n" .
       "  -i ID      Message ID to label\n" .
-      "  -l LABELS  Labels in CSV format (comma-separated)\b" .
+      "  -l LABELS  Labels in CSV format (comma-separated)\n" .
       "  -f         Path to a .gmail-labelerrc file\n" .
       "  -p PW      Provide password to token on the command line.  Not safe!\n" 
    );
@@ -54,18 +54,6 @@ Getopt::Long::GetOptions(
 or usage("Invalid commmand line options.");
 if ($opt_help) {
     usage("");
-}
-if ($opt_messageid =~ /^([a-zA-Z0-9]+)$/) {
-    $opt_messageid = $1;
-}
-else {
-    usage("Invalid message id.");
-}
-if ($opt_labels =~ /^([a-zA-Z0-9_,]+)$/) {
-    $opt_labels = $1;
-}
-else {
-    usage("Invalid labels.");
 }
 
 # Default variables
@@ -100,6 +88,19 @@ sub readconfig {
     $logfile = $config->param('logfile') || $logfile;
     $logfile =~ s/~/$homedir/g;
     $debug = $config->param('debug') || $debug;
+}
+
+if ($opt_messageid =~ /^([a-zA-Z0-9]+)$/) {
+    $opt_messageid = $1;
+}
+else {
+    usage("Invalid message id.");
+}
+if ($opt_labels =~ /^([a-zA-Z0-9_,]+)$/) {
+    $opt_labels = $1;
+}
+else {
+    usage("Invalid labels.");
 }
 
 # Initialize connection
