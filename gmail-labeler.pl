@@ -30,9 +30,11 @@ sub usage {
    $command =~ s#^.*/##;
    print STDERR (
       $message,
-      "Usage: $command -i ID -l \"LABELS\" [-f .gmail-labelerrc] [-p PW]\n" .
+      "Usage: $command -i ID -a \"LABELS\" -r \"LABELS\" [-l] [-f .gmail-labelerrc] [-p PW]\n" .
       "  -i ID      Message ID to label\n" .
-      "  -l LABELS  Labels in CSV format (comma-separated)\n" .
+      "  -l         List labels only\n" .
+      "  -a LABELS  Add labels in CSV format (comma-separated)\n" .
+      "  -r LABELS  Remove labels in CSV format (comma-separated)\n" .
       "  -f         Path to a .gmail-labelerrc file\n" .
       "  -p PW      Provide password to token on the command line.  Not safe!\n" 
    );
@@ -40,12 +42,16 @@ sub usage {
 }
 
 my $opt_labels = "";
+my $opt_add = "";
+my $opt_remove = "";
 my $opt_help;
 my $opt_gmaillabelerrc;
 my $opt_messageid = "";
 my $opt_passwd = "";
 Getopt::Long::GetOptions(
-    'l=s' => \$opt_labels,
+    'l' => \$opt_labels,
+    'a=s' => \$opt_add,
+    'r=s' => \$opt_remove,
     'f=s' => \$opt_gmaillabelerrc,
     'i=s' => \$opt_messageid,
     'p=s' => \$opt_passwd,
@@ -90,17 +96,35 @@ sub readconfig {
     $debug = $config->param('debug') || $debug;
 }
 
-if ($opt_messageid =~ /^([a-zA-Z0-9]+)$/) {
-    $opt_messageid = $1;
-}
-else {
-    usage("Invalid message id.");
-}
-if ($opt_labels =~ /^([a-zA-Z0-9_,]+)$/) {
-    $opt_labels = $1;
-}
-else {
-    usage("Invalid labels.");
+if (!$opt_labels) {
+    if ($opt_messageid =~ /^([a-zA-Z0-9]+)$/) {
+        $opt_messageid = $1;
+    }
+    else {
+        usage("Invalid message id.");
+    }
+    if ($opt_add) {
+        if ($opt_add=~ /^([a-zA-Z0-9_, -]+)$/) {
+            $opt_add = $1;
+        }
+        else {
+            usage("Invalid labels.");
+        }
+    }
+    if ($opt_remove) {
+        if ($opt_remove=~ /^([a-zA-Z0-9_, -]+)$/) {
+            $opt_remove = $1;
+        }
+        else {
+            usage("Invalid labels.");
+        }
+    }
+    if ($opt_add || $opt_remove) {
+        # We need either to proceed
+    }
+    else {
+        usage("Need to specify labels to add/remove.");
+    }
 }
 
 # Initialize connection
@@ -159,21 +183,104 @@ else {
 
 my $res;
 
-my @labels = split "/,/", $opt_labels;
+my %labels;
+labelmapping();
 
-labelmessage($opt_messageid,@labels);
+if ($opt_labels) {
+    print "Current Gmail Labels\n";
+    print "====================\n";
+    foreach my $label (sort {lc($a) cmp lc($b)} keys %labels) {
+        print "\'$label\'\n";
+    }
+    exit;
+}
+
+my @labelsadd = ();
+foreach my $label (split /,/, $opt_add) {
+    if (! $labels{$label}) {
+        print "Creating label \"$label\"\n";
+        createlabel($label);
+        labelmapping();
+    }
+    push @labelsadd, $labels{$label};
+
+}
+my @labelsremove = ();;
+foreach my $label (split /,/, $opt_remove) {
+    if (! $labels{$label}) {
+        print "Creating label \"$label\"\n";
+        createlabel($label);
+        labelmapping();
+    }
+    push @labelsremove, $labels{$label};
+}
+
+labelmessage($opt_messageid);
 
 exit;
 
-sub labelmessage {
-    my ($opt_messageid,@labels) = @_;
+sub labelmapping {
+    # Get labels name->id mapping
+    $res = $service->users->labels->list(
+        body => {
+            userId => 'me',
+        }
+    )->execute({ auth_driver => $auth_driver });
+    foreach my $label (@{$res->{labels}}) {
+        my $label_id = $label->{id};
+        my $label_name = $label->{name};
+        $labels{$label_name} = $label_id;
+    }
+}
+
+sub createlabel {
+    my ($name) = @_;
     my %body;
     $body{body}{userId} = 'me';
-    $body{body}{Id} = $opt_messageid;
-    $body{body}{addLabelIds} = @labels;
-    $res = $service->users->messages->modify (
-        %body
-    )->execute({ auth_driver => $auth_driver });
+    $body{body}{labelListVisibility} = 'labelShow';
+    $body{body}{messageListVisibility} = 'show';
+    $body{body}{name} = $name;
+    eval {
+        $res = $service->users->labels->create (
+            %body
+        )->execute({ auth_driver => $auth_driver });
+    };
+    if ($@ =~ /^404/) {
+        $debug && print "Unable to create label $name\n";
+        exit 1;
+    }
+    elsif ($@ =~ /^(.*?) at /) {
+        $debug && print "$1: \"$name\"\n";
+        exit 1;       
+    }
+}
+
+sub labelmessage {
+    my ($opt_messageid) = @_;
+
+    my %body;
+    $body{body}{userId} = 'me';
+    $body{body}{id} = $opt_messageid;
+    $body{body}{addLabelIds} = \@labelsadd;
+    $body{body}{removeLabelIds} = \@labelsremove;
+
+    eval {
+        $res = $service->users->messages->modify (
+            %body
+        )->execute({ auth_driver => $auth_driver });
+    };
+    if ($@ =~ /^404/) {
+        $debug && print "Unable to label message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
+    }
+    elsif ($@ =~ /^400 .*(Invalid label.*?) at /) {
+        $debug && print $1 . "\n";
+    }
+    elsif ($@ =~ /^(.*?) at /) {
+        $debug && print "$1\n";
+    }
+    else {
+        $debug && print "Labeled message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
+    }
 }
 
 # Encrypt string
