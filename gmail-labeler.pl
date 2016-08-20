@@ -201,8 +201,13 @@ if ($opt_labels) {
 my @labelsadd = ();
 foreach my $label (split /,/, $opt_add) {
     if (! $labels{$label}) {
-        print "Creating label \"$label\"\n";
-        if (! $opt_dryrun) {
+        if ($opt_dryrun) {
+            print "DRYRUN: Creating label \"$label\"\n";
+            $logfile && logit($logfile,"DRYRUN: Creating label \"$label\"");
+        }
+        else {
+            $debug && print "Creating label \"$label\"\n";
+            $logfile && logit($logfile,"Creating label \"$label\"");
             createlabel($label);
         }
         labelmapping();
@@ -213,18 +218,24 @@ foreach my $label (split /,/, $opt_add) {
 my @labelsremove = ();;
 foreach my $label (split /,/, $opt_remove) {
     if (! $labels{$label}) {
-        $debug && print "Creating label \"$label\"\n";
-        $logfile && logit($logfile,"Creating label \"$label\"");
-        if (! $opt_dryrun) {
+        if ($opt_dryrun) {
+            print "DRYRUN: Creating label \"$label\"\n";
+            $logfile && logit($logfile,"DRYRUN: Creating label \"$label\"");
+        }
+        else {    
+            $debug && print "Creating label \"$label\"\n";
+            $logfile && logit($logfile,"Creating label \"$label\"");
             createlabel($label);
         }
+        
         labelmapping();
     }
     push @labelsremove, $labels{$label};
 }
 
 if ($opt_dryrun) {
-    print "Labeling message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
+    print "DRYRUN: Labeling message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
+    $logfile && logit($logfile,"DRYRUN: Labeling message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
 }
 else {
     $debug && print "Labeling message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
