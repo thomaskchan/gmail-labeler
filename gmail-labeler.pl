@@ -213,7 +213,8 @@ foreach my $label (split /,/, $opt_add) {
 my @labelsremove = ();;
 foreach my $label (split /,/, $opt_remove) {
     if (! $labels{$label}) {
-        print "Creating label \"$label\"\n";
+        $debug && print "Creating label \"$label\"\n";
+        $logfile && logit($logfile,"Creating label \"$label\"");
         if (! $opt_dryrun) {
             createlabel($label);
         }
@@ -226,6 +227,8 @@ if ($opt_dryrun) {
     print "Labeling message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
 }
 else {
+    $debug && print "Labeling message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
+    $logfile && logit($logfile,"Labeling message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
     labelmessage($opt_messageid);
 }
 
@@ -259,10 +262,12 @@ sub createlabel {
     };
     if ($@ =~ /^404/) {
         $debug && print "Unable to create label $name\n";
+        $logfile && logit($logfile,"Unable to create label $name");
         exit 1;
     }
     elsif ($@ =~ /^(.*?) at /) {
         $debug && print "$1: \"$name\"\n";
+        $logfile && logit($logfile,"$1: \"$name\"");
         exit 1;       
     }
 }
@@ -283,15 +288,19 @@ sub labelmessage {
     };
     if ($@ =~ /^404/) {
         $debug && print "Unable to label message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
+        $logfile && logit($logfile,"Unable to label message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
     }
     elsif ($@ =~ /^400 .*(Invalid label.*?) at /) {
         $debug && print $1 . "\n";
+        $logfile && logit($logfile,"$1");
     }
     elsif ($@ =~ /^(.*?) at /) {
         $debug && print "$1\n";
+        $logfile && logit($logfile,"$1");
     }
     else {
         $debug && print "Labeled message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
+        $logfile && logit($logfile,"Labeled message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
     }
 }
 
