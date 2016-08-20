@@ -223,7 +223,7 @@ foreach my $label (split /,/, $opt_remove) {
 }
 
 if ($opt_dryrun) {
-    print "Labeling message $opt_message with ADD:$opt_add, REMOVE:$opt_remove\n";
+    print "Labeling message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
 }
 else {
     labelmessage($opt_messageid);
