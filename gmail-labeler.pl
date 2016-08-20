@@ -30,12 +30,13 @@ sub usage {
    $command =~ s#^.*/##;
    print STDERR (
       $message,
-      "Usage: $command -i ID -a \"LABELS\" -r \"LABELS\" [-l] [-f .gmail-labelerrc] [-p PW]\n" .
+      "Usage: $command -i ID -a \"LABELS\" -r \"LABELS\" [-d] [-l] [-f .gmail-labelerrc] [-p PW]\n" .
       "  -i ID      Message ID to label\n" .
       "  -l         List labels only\n" .
       "  -a LABELS  Add labels in CSV format (comma-separated)\n" .
       "  -r LABELS  Remove labels in CSV format (comma-separated)\n" .
       "  -f         Path to a .gmail-labelerrc file\n" .
+      "  -d         Dry run, just print out what we plan on doing\n" .
       "  -p PW      Provide password to token on the command line.  Not safe!\n" 
    );
    die("\n")
@@ -47,6 +48,7 @@ my $opt_remove = "";
 my $opt_help;
 my $opt_gmaillabelerrc;
 my $opt_messageid = "";
+my $opt_dryrun = "";
 my $opt_passwd = "";
 Getopt::Long::GetOptions(
     'l' => \$opt_labels,
@@ -54,6 +56,7 @@ Getopt::Long::GetOptions(
     'r=s' => \$opt_remove,
     'f=s' => \$opt_gmaillabelerrc,
     'i=s' => \$opt_messageid,
+    'd' => \$opt_dryrun,
     'p=s' => \$opt_passwd,
     'h|help' => \$opt_help,
 )
@@ -199,7 +202,9 @@ my @labelsadd = ();
 foreach my $label (split /,/, $opt_add) {
     if (! $labels{$label}) {
         print "Creating label \"$label\"\n";
-        createlabel($label);
+        if (! $opt_dryrun) {
+            createlabel($label);
+        }
         labelmapping();
     }
     push @labelsadd, $labels{$label};
@@ -209,13 +214,20 @@ my @labelsremove = ();;
 foreach my $label (split /,/, $opt_remove) {
     if (! $labels{$label}) {
         print "Creating label \"$label\"\n";
-        createlabel($label);
+        if (! $opt_dryrun) {
+            createlabel($label);
+        }
         labelmapping();
     }
     push @labelsremove, $labels{$label};
 }
 
-labelmessage($opt_messageid);
+if ($opt_dryrun) {
+    print "Labeling message $opt_message with ADD:$opt_add, REMOVE:$opt_remove\n";
+}
+else {
+    labelmessage($opt_messageid);
+}
 
 exit;
 
