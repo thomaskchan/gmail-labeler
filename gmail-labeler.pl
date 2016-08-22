@@ -298,16 +298,20 @@ sub labelmessage {
         )->execute({ auth_driver => $auth_driver });
     };
     if ($@ =~ /^404/) {
-        $debug && print "Unable to label message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
-        $logfile && logit($logfile,"Unable to label message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
+        $debug && print "ERROR: Unable to label message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
+        $logfile && logit($logfile,"ERROR: Unable to label message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
+    }
+    elsif ($@ =~ /^500 .*(Can't connect.*?) at /) {
+        $debug && print "ERROR: " . $1 . " for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
+        $logfile && logit($logfile,"ERROR: $1 for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
     }
     elsif ($@ =~ /^400 .*(Invalid label.*?) at /) {
-        $debug && print $1 . "\n";
-        $logfile && logit($logfile,"$1");
+        $debug && print "ERROR: " . $1 . " for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
+        $logfile && logit($logfile,"ERROR: $1 for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
     }
     elsif ($@ =~ /^(.*?) at /) {
-        $debug && print "$1\n";
-        $logfile && logit($logfile,"$1");
+        $debug && print "ERROR: " . $1 . " for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
+        $logfile && logit($logfile,"ERROR: $1 for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
     }
     else {
         $debug && print "Labeled message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
