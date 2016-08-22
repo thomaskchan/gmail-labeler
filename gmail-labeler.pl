@@ -107,7 +107,7 @@ if (!$opt_labels) {
         usage("Invalid message id.");
     }
     if ($opt_add) {
-        if ($opt_add=~ /^([a-zA-Z0-9_, \/-]+)$/) {
+        if ($opt_add=~ /^([a-zA-Z0-9._, \/-]+)$/) {
             $opt_add = $1;
         }
         else {
@@ -115,7 +115,7 @@ if (!$opt_labels) {
         }
     }
     if ($opt_remove) {
-        if ($opt_remove=~ /^([a-zA-Z0-9_, \/-]+)$/) {
+        if ($opt_remove=~ /^([a-zA-Z0-9._, \/-]+)$/) {
             $opt_remove = $1;
         }
         else {
