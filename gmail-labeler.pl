@@ -133,6 +133,9 @@ if (!$opt_labels) {
     }
 }
 
+# Log our args before we initiate a google connection (just in case that fails)
+$logfile && logit($logfile,"ID:$opt_messageid ADD:$opt_add REMOVE:$opt_remove");
+
 # Initialize connection
 my $client = Google::API::Client->new;
 my $service = $client->build('gmail', 'v1');
