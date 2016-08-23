@@ -70,5 +70,8 @@ Default configuration file is ~/.gmail-labelerrc, but you may specify it as an a
 ### logfile ~/.gmail-labeler/.gmail-labeler.log
 - Path to logfile
 
+### failfile ~/.gmail-labeler/failure.log
+- Path to failure log
+
 ### debug 0
 - Print out debug messages.  Default is 0.

@@ -72,6 +72,7 @@ my $clientsecret = "";
 my $tokenfile = $ENV{"HOME"} . ".gmail-labeler/token.dat";
 my $passwd = "";
 my $logfile = $ENV{"HOME"} . ".gmail-labeler/.gmail-labeler.log";
+my $failfile = $ENV{"HOME"} . ".gmail-labeler/failure.log";
 my $debug = 0;
 
 # Read from config file
@@ -96,6 +97,8 @@ sub readconfig {
     $passwd = $config->param('passwd') || $passwd;
     $logfile = $config->param('logfile') || $logfile;
     $logfile =~ s/~/$homedir/g;
+    $failfile = $config->param('failfile') || $failfile;
+    $failfile =~ s/~/$homedir/g;
     $debug = $config->param('debug') || $debug;
 }
 
@@ -300,18 +303,22 @@ sub labelmessage {
     if ($@ =~ /^404/) {
         $debug && print "ERROR: Unable to label message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
         $logfile && logit($logfile,"ERROR: Unable to label message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
+        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""; 
     }
     elsif ($@ =~ /^500 .*(Can't connect.*?) at /) {
         $debug && print "ERROR: " . $1 . " for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
         $logfile && logit($logfile,"ERROR: $1 for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
+        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""; 
     }
     elsif ($@ =~ /^400 .*(Invalid label.*?) at /) {
         $debug && print "ERROR: " . $1 . " for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
         $logfile && logit($logfile,"ERROR: $1 for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
+        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""; 
     }
     elsif ($@ =~ /^(.*?) at /) {
         $debug && print "ERROR: " . $1 . " for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
         $logfile && logit($logfile,"ERROR: $1 for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
+        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""; 
     }
     else {
         $debug && print "Labeled message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
@@ -424,6 +431,16 @@ sub logit {
     close LOG;
 }
 
+# Write failures
+sub logfail {
+    my ($failfile,$message) = @_;
+    my $date = localtime();
+    mkdir_p(dirname($logfile));
+    open (LOG, ">> $logfile");
+    printf LOG "%s\t%s\n", $date, $message;
+    close LOG;
+}
+
 # Write default config
 sub writeconfig {
     my ($configfile) = @_;
@@ -457,6 +474,10 @@ token ~/.gmail-labeler/.gmail-labeler.token
 # Path to logfile
 # logfile ~/.gmail-labeler/.gmail-labeler.log
 logfile ~/.gmail-labeler/.gmail-labeler.log
+
+# Path to failure log
+# failfile ~/.gmail-labeler/failure.log
+failfile ~/.gmail-labeler/failure.log
 
 # Print out debug messages.  Default is 0.
 # debug 0
