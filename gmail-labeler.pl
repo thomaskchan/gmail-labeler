@@ -303,22 +303,22 @@ sub labelmessage {
     if ($@ =~ /^404/) {
         $debug && print "ERROR: Unable to label message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
         $logfile && logit($logfile,"ERROR: Unable to label message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
-        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""; 
+        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""); 
     }
     elsif ($@ =~ /^500 .*(Can't connect.*?) at /) {
         $debug && print "ERROR: " . $1 . " for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
         $logfile && logit($logfile,"ERROR: $1 for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
-        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""; 
+        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""); 
     }
     elsif ($@ =~ /^400 .*(Invalid label.*?) at /) {
         $debug && print "ERROR: " . $1 . " for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
         $logfile && logit($logfile,"ERROR: $1 for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
-        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""; 
+        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""); 
     }
     elsif ($@ =~ /^(.*?) at /) {
         $debug && print "ERROR: " . $1 . " for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
         $logfile && logit($logfile,"ERROR: $1 for message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove");
-        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""; 
+        $failfile && logfail($logfile,"$opt_messageid \"$opt_add\" \"$opt_remove\""); 
     }
     else {
         $debug && print "Labeled message $opt_messageid with ADD:$opt_add, REMOVE:$opt_remove\n";
